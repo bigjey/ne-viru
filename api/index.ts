@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sql } from "@vercel/postgres";
 
 export default async function handler(request: VercelRequest, response: VercelResponse) {
-    const { rows } = await sql`SELECT name, count FROM likes;`;
+    const { rows } = await sql`SELECT id, name, count FROM likes order by id;`;
 
     return response.send(`
         <html>
@@ -10,10 +10,10 @@ export default async function handler(request: VercelRequest, response: VercelRe
                 <h1>Little likes app <3</h1>
                 <form action="/api/like">
                     ${rows.length ? rows.map(row => {
-                        return `<div>${row.name}: ${row.count} <button type="submit" name="name" value="${row.name}">Like</button></div>`;
-                    }) : "No users yet :)"}
+                        return `<div>${row.name}: ${row.count} <button type="submit" name="id" value="${row.id}">Like</button></div>`;
+                    }).join("") : "No users yet :)"}
                 </form>
-                <form action="/api/like">
+                <form action="/api/add">
                     <div>
                         <input type="text" name="name" autofocus />
                         <button type="submit">Add</button>
