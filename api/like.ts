@@ -10,6 +10,12 @@ export default async function handler(request: VercelRequest, response: VercelRe
         return response.status(400).send("Bad 'name' value");
     }
 
+    finalName = finalName.trim();
+
+    if (finalName.length > 255) {
+        return response.status(400).send("It's too big! (that's what she said)");
+    }
+
     console.log("processing name:", finalName);
     
     const { rows } = await sql`SELECT name, count FROM likes where name = ${finalName};`;
