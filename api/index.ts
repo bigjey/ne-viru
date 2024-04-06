@@ -1,12 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { sql } from "@vercel/postgres";
-
+import { PrismaClient, Likes } from '@prisma/client'
 import { escapeHtml } from '../utils/escape-html';
 
-type UserData = {name:string; id: number; count: number};
+const prisma = new PrismaClient()
 
 export default async function handler(request: VercelRequest, response: VercelResponse) {
-    const { rows } = await sql`SELECT id, name, count FROM likes order by id;`;
+    const likes = await prisma.likes.findMany({orderBy: {id: 'asc'}});
 
     return response.send(`
         <!DOCTYPE html>
@@ -21,7 +20,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
             <body>
                 <h1>Little likes app <3</h1>
                 <form action="/api/like">
-                    ${rows.length ? renderUsers(rows as UserData[]) : "No users yet :)"}
+                    ${likes.length ? renderUsers(likes) : "No users yet :)"}
                 </form>
                 <br/>
                 <form action="/api/add">
@@ -34,16 +33,16 @@ export default async function handler(request: VercelRequest, response: VercelRe
     `);
 }
 
-function renderUsers(users: UserData[]) {
+function renderUsers(likes: Likes[]) {
     const html: string[] = [];
 
     html.push('<table><tbody>');
     
-    users.forEach((user, index) => {
+    likes.forEach((like, index) => {
         html.push(`<tr>`);
-        html.push(`<td>${escapeHtml(user.name)}</td>`);
-        html.push(`<td width="50"><code>${user.count}</code></td>`);
-        html.push(`<td> <button type="submit" name="id" value="${user.id}">Like</button></td></tr>`);
+        html.push(`<td>${escapeHtml(like.name)}</td>`);
+        html.push(`<td width="50"><code>${like.count}</code></td>`);
+        html.push(`<td> <button type="submit" name="id" value="${like.id}">Like</button></td></tr>`);
         html.push('</tr>');
     });
 

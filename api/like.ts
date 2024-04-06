@@ -1,6 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { sql } from "@vercel/postgres";
 import { allowCors } from "../utils/allow-cors";
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
 
 async function handler(request: VercelRequest, response: VercelResponse) {
   const { id } = request.query;
@@ -11,7 +13,14 @@ async function handler(request: VercelRequest, response: VercelResponse) {
     return response.status(400).send("Bad id");
   }
 
-  await sql`update likes set count = count + 1 where id = ${finalId}`;
+  await prisma.likes.update({
+    data: {
+      count: {increment: 1}
+    },
+    where: {
+      id: Number(finalId)
+    }
+  })
 
   if (request.headers["x-no-redirect"] === "true") {
     return response.status(200).end();
